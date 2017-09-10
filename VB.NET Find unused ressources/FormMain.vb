@@ -245,6 +245,7 @@ Public Class FormMain
 
 
                 g_fFormMain.BeginInvoke(Sub()
+                                            'Show everything
                                             g_fFormMain.ListBox_Files.Items.Clear()
                                             g_fFormMain.ListBox_UnusedRes.Items.Clear()
                                             g_fFormMain.ListBox_UnusedFiles.Items.Clear()

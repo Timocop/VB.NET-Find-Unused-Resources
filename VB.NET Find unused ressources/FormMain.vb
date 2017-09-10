@@ -80,6 +80,10 @@ Public Class FormMain
 
         Private Sub ScannerThread()
             Try
+                If (String.IsNullOrEmpty(g_sProjectPath) OrElse Not IO.File.Exists(g_sProjectPath)) Then
+                    Throw New ArgumentException("Prject file does not exist")
+                End If
+
                 Dim sRootFolder As String = IO.Path.GetDirectoryName(g_sProjectPath)
                 Dim sResourcePath As String = IO.Path.Combine(sRootFolder, "Resources")
 
@@ -91,13 +95,13 @@ Public Class FormMain
                 Dim lProjectFiles As New List(Of String)
                 Using mProjReader As New Xml.XmlTextReader(g_sProjectPath)
                     While (mProjReader.Read())
-                        Select Case mProjReader.NodeType
+                        Select Case (mProjReader.NodeType)
                             Case (Xml.XmlNodeType.Element)
                                 If (mProjReader.Name.ToLower <> "compile" OrElse Not mProjReader.HasAttributes) Then
                                     Continue While
                                 End If
 
-                                While mProjReader.MoveToNextAttribute()
+                                While (mProjReader.MoveToNextAttribute())
                                     If (mProjReader.Name.ToLower <> "include") Then
                                         Continue While
                                     End If
@@ -119,8 +123,8 @@ Public Class FormMain
                 Next
 
                 'Get all resources
-                Dim mResList As New List(Of DictionaryEntry)
-                Using mResReader As New Resources.ResXResourceReader(IO.Path.Combine(sRootFolder, "My Project\Resources.resx"))
+                Dim lResList As New List(Of DictionaryEntry)
+                Using mResReader As New ResXResourceReader(IO.Path.Combine(sRootFolder, "My Project\Resources.resx"))
                     mResReader.UseResXDataNodes = True
                     mResReader.BasePath = sResourcePath
 
@@ -137,23 +141,23 @@ Public Class FormMain
                         Dim sResName As String = CStr(resourceValue.Key)
                         Dim sFile As String = IO.Path.GetFullPath(mResNode.FileRef.FileName) 'Relative path to absolute path convertation
 
-                        mResList.Add(New DictionaryEntry(sResName, sFile))
+                        lResList.Add(New DictionaryEntry(sResName, sFile))
                     Next
                 End Using
 
                 'Create regex tests
-                Dim mRegexTests As New List(Of DictionaryEntry)
-                For Each mResDic In mResList
+                Dim lRegexTests As New List(Of DictionaryEntry)
+                For Each mResDic In lResList
                     Dim sResName As String = CStr(mResDic.Key)
 
-                    mRegexTests.Add(New DictionaryEntry(sResName, New Regex(String.Format("(My\.(Resources\.){0}{1})", "{1,2}", Regex.Escape(sResName)), RegexOptions.Multiline Or RegexOptions.Compiled)))
-                    mRegexTests.Add(New DictionaryEntry(sResName, New Regex(String.Format("\(""{0}""\)", Regex.Escape(sResName)), RegexOptions.Multiline Or RegexOptions.Compiled)))
+                    lRegexTests.Add(New DictionaryEntry(sResName, New Regex(String.Format("(My\.(Resources\.){0}{1})", "{1,2}", Regex.Escape(sResName)), RegexOptions.Multiline Or RegexOptions.Compiled)))
+                    lRegexTests.Add(New DictionaryEntry(sResName, New Regex(String.Format("\(""{0}""\)", Regex.Escape(sResName)), RegexOptions.Multiline Or RegexOptions.Compiled)))
                 Next
 
                 'Check in files
                 Dim lUnusedRes As New List(Of String)
                 Dim lUsedRes As New List(Of String)
-                For Each mRegexDic In mRegexTests
+                For Each mRegexDic In lRegexTests
                     Dim sResName As String = CStr(mRegexDic.Key)
                     Dim mRegex As Regex = DirectCast(mRegexDic.Value, Regex)
 
@@ -174,7 +178,7 @@ Public Class FormMain
                 Next
 
                 'Get unused resource names
-                For Each mResDic In mResList
+                For Each mResDic In lResList
                     Dim sResName As String = CStr(mResDic.Key)
 
                     If (lUsedRes.Contains(sResName)) Then
@@ -184,24 +188,58 @@ Public Class FormMain
                     lUnusedRes.Add(sResName)
                 Next
 
+                'Exclude real project files
+                Dim lExcludeExt As New List(Of String)
+                For Each sFile As String In lProjectFiles
+                    Dim sFileExt As String = IO.Path.GetExtension(sFile)
+
+                    If (lExcludeExt.Contains(sFileExt.ToLower)) Then
+                        Continue For
+                    End If
+
+                    lExcludeExt.Add(sFileExt)
+                Next
+
                 'Get unused files
                 Dim lUnusedFiles As New List(Of String)
                 For Each sRegFile As String In IO.Directory.GetFiles(sResourcePath)
                     Dim bUnused As Boolean = True
 
-                    For Each mResDic In mResList
-                        Dim sResFicFile As String = CStr(mResDic.Value)
-
-                        If (sResFicFile.ToLower <> sRegFile.ToLower) Then
-                            Continue For
+                    If (bUnused) Then
+                        Dim sFileExt As String = IO.Path.GetExtension(sRegFile)
+                        If (lExcludeExt.Contains(sFileExt.ToLower)) Then
+                            bUnused = False
+                            Exit For
                         End If
+                    End If
 
-                        bUnused = False
-                        Exit For
-                    Next
+                    If (bUnused) Then
+                        For Each sFile As String In lProjectFiles
+                            If (sFile.ToLower <> sRegFile.ToLower) Then
+                                Continue For
+                            End If
+
+                            bUnused = False
+                            Exit For
+                        Next
+                    End If
+
+                    If (bUnused) Then
+                        For Each mResDic In lResList
+                            Dim sResFicFile As String = CStr(mResDic.Value)
+
+                            If (sResFicFile.ToLower <> sRegFile.ToLower) Then
+                                Continue For
+                            End If
+
+                            bUnused = False
+                            Exit For
+                        Next
+                    End If
 
                     If (bUnused) Then
                         lUnusedFiles.Add(sRegFile)
+                        Continue For
                     End If
                 Next
 

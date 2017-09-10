@@ -26,6 +26,7 @@ Partial Class FormMain
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(FormMain))
         Me.Button_Scan = New System.Windows.Forms.Button()
         Me.Button_FindProject = New System.Windows.Forms.Button()
         Me.TextBox_ProjectPath = New System.Windows.Forms.TextBox()
@@ -63,7 +64,7 @@ Partial Class FormMain
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.TextBox_ProjectPath.Location = New System.Drawing.Point(12, 14)
         Me.TextBox_ProjectPath.Name = "TextBox_ProjectPath"
-        Me.TextBox_ProjectPath.Size = New System.Drawing.Size(648, 20)
+        Me.TextBox_ProjectPath.Size = New System.Drawing.Size(648, 22)
         Me.TextBox_ProjectPath.TabIndex = 2
         '
         'Label1
@@ -71,9 +72,9 @@ Partial Class FormMain
         Me.Label1.AutoSize = True
         Me.Label1.Location = New System.Drawing.Point(12, 37)
         Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(69, 13)
+        Me.Label1.Size = New System.Drawing.Size(79, 13)
         Me.Label1.TabIndex = 3
-        Me.Label1.Text = "Files to scan:"
+        Me.Label1.Text = "Files scanned:"
         '
         'ListBox_Files
         '
@@ -90,7 +91,7 @@ Partial Class FormMain
         Me.Label2.AutoSize = True
         Me.Label2.Location = New System.Drawing.Point(12, 151)
         Me.Label2.Name = "Label2"
-        Me.Label2.Size = New System.Drawing.Size(96, 13)
+        Me.Label2.Size = New System.Drawing.Size(102, 13)
         Me.Label2.TabIndex = 5
         Me.Label2.Text = "Unused resources:"
         '
@@ -109,7 +110,7 @@ Partial Class FormMain
         Me.Label3.AutoSize = True
         Me.Label3.Location = New System.Drawing.Point(12, 265)
         Me.Label3.Name = "Label3"
-        Me.Label3.Size = New System.Drawing.Size(112, 13)
+        Me.Label3.Size = New System.Drawing.Size(121, 13)
         Me.Label3.TabIndex = 7
         Me.Label3.Text = "Unused resource files:"
         '
@@ -137,6 +138,8 @@ Partial Class FormMain
         Me.Controls.Add(Me.TextBox_ProjectPath)
         Me.Controls.Add(Me.Button_FindProject)
         Me.Controls.Add(Me.Button_Scan)
+        Me.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Name = "FormMain"
         Me.Text = "VB.NET Find Unused Resources"
         Me.ResumeLayout(False)
